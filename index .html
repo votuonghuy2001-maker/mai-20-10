@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gửi Mai ❤️ | 20/10</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{height:100vh;overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#520020 0%,#210014 32%,#090009 67%,#000 100%);color:#fff;font-family:"Segoe UI",sans-serif}
+.scene{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;text-align:center;overflow:hidden;padding:20px}
+h1{font-size:clamp(28px,6vw,46px);color:#ff9fc5;text-shadow:0 0 15px #ff1764,0 0 35px #ff1764,0 0 60px #ff3f86;margin-bottom:18px;animation:glow 2s infinite alternate;z-index:2}
+.subtitle{color:#ffc5dc;font-size:14px;letter-spacing:2px;margin-bottom:42px;z-index:2}
+.heart{font-size:clamp(110px,24vw,180px);cursor:pointer;user-select:none;line-height:1;filter:drop-shadow(0 0 18px #ff174f) drop-shadow(0 0 42px #ff176b);animation:beat 1s infinite;z-index:5;transition:transform .3s}
+.heart:hover{transform:scale(1.1)}
+.hint{margin-top:30px;color:#ffb4d0;font-size:15px;animation:glow 2s infinite alternate;z-index:2}
+.message{position:absolute;left:50%;top:50%;width:min(86%,560px);transform:translate(-50%,-50%);color:#fff0f6;font-size:clamp(17px,3.8vw,26px);line-height:1.6;font-weight:600;text-shadow:0 0 12px #ff2475,0 0 28px #ff174f;pointer-events:none;z-index:10;opacity:0}
+.message.show{animation:flyMessage 4s ease-in-out forwards}
+.falling-heart{position:absolute;top:-40px;color:#ff3c75;pointer-events:none;user-select:none;animation:fall linear forwards;filter:drop-shadow(0 0 7px #ff1758);z-index:1}
+.spark{position:absolute;pointer-events:none;color:#ff8ab6;font-size:20px;animation:burst 1.2s ease-out forwards;z-index:8}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.14)}30%{transform:scale(1)}45%{transform:scale(1.18)}60%{transform:scale(1)}}
+@keyframes glow{from{opacity:.75}to{opacity:1}}
+@keyframes fall{0%{transform:translateY(-5vh) rotate(0deg);opacity:0}10%{opacity:.9}90%{opacity:.8}100%{transform:translateY(115vh) rotate(360deg);opacity:0}}
+@keyframes flyMessage{0%{opacity:0;transform:translate(-50%,25px) scale(.75)}12%{opacity:1;transform:translate(-50%,0) scale(1)}78%{opacity:1;transform:translate(-50%,-12px) scale(1)}100%{opacity:0;transform:translate(-50%,-65px) scale(1.06)}}
+@keyframes burst{0%{opacity:1;transform:translate(0,0) scale(.5)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.6)}}
+</style>
+</head>
+<body>
+<div class="scene" id="scene">
+  <h1>Gửi Mai, với tất cả yêu thương ❤️</h1>
+  <p class="subtitle">20 THÁNG 10 · NGÀY CỦA EM 🌹</p>
+  <div class="heart" id="heart" title="Chạm vào trái tim nhé!">❤️</div>
+  <p class="hint">Mày chạm vào trái tim để nhận lời chúc cho tao 💌</p>
+  <div class="message" id="message"></div>
+<audio id="bgMusic" loop preload="auto">
+  <source src="./nhac-20-10.mp3" type="audio/mpeg">
+</audio>
+</div>
+<script>
+const scene=document.getElementById('scene');
+const heart=document.getElementById('heart');
+const message=document.getElementById('message');
+const wishes=[
+'🌹 Gửi Bé Mai,chúc em ngày 20/10 thật dui dẻ, rạng rỡ và luôn hạnh phúc nhé!',
+'💖 Mong mọi điều dịu dàng và tốt đẹp nhất sẽ đến với em, Cô bé mũm mĩmm.',
+'🌷 Chúc em luôn được yêu thương, trân trọng và nâng niu mỗi ngày.',
+'💕 Mong em luôn giữ nụ cười trên môi, Không phải gặp mấy thằng hãm lol nữa kk.',
+'✨ Chúc em luôn tự tin, mạnh mẽ và sớm thực hiện được tất cả ước mơ của mình.',
+'🥰 Chúc Bé Mai có một ngày 20/10 thật ngọt ngào và đáng nhớ.',
+'🌹 Không chỉ hôm nay, mong em sẽ luôn hạnh phúc trong suốt 365 ngày mỗi năm(9nam).',
+'💗 Mong mỗi ngày thức dậy, em đều có thật nhiều lý do để mỉm cười.',
+'🎀 Em hãy luôn là chính mình nhé, vì em xứng đáng với những điều tốt đẹp.',
+'💞 Chúc em một ngày 20/10 ngập tràn hoa, quà, tiếng cười và những yêu thương chân thành.'
+];
+let wishIndex=0,messageTimer,wishInterval=null,wishesStarted=false,audioCtx=null,musicOn=false,musicTimer=null,noteIndex=0;
+const melody=[[261.63,329.63,392,493.88],[220,261.63,329.63,392],[174.61,220,261.63,329.63],[196,246.94,293.66,392],[261.63,329.63,392,523.25],[246.94,293.66,369.99,493.88],[196,246.94,329.63,392],[220,293.66,349.23,440]];
+// Nhạc nền lãng mạn tự tạo: hợp âm ấm, giai điệu rải nốt và âm lượng lớn hơn.
+function playChord(){if(!audioCtx||!musicOn)return;const chord=melody[noteIndex++%melody.length];const now=audioCtx.currentTime;chord.forEach((frequency,i)=>{const oscillator=audioCtx.createOscillator(),gain=audioCtx.createGain();oscillator.type=i===0?'triangle':'sine';oscillator.frequency.value=frequency;gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(i===0?.105:.065,now+.10+i*.025);gain.gain.exponentialRampToValueAtTime(.0001,now+2.15);oscillator.connect(gain);gain.connect(audioCtx.destination);oscillator.start(now+i*.075);oscillator.stop(now+2.2);});
+// Nốt cao nhẹ như chuông để tạo cảm giác ngọt ngào.
+const bell=audioCtx.createOscillator(),bellGain=audioCtx.createGain();bell.type='sine';bell.frequency.value=chord[3]*2;bellGain.gain.setValueAtTime(.0001,now);bellGain.gain.exponentialRampToValueAtTime(.035,now+.06);bellGain.gain.exponentialRampToValueAtTime(.0001,now+1.1);bell.connect(bellGain);bellGain.connect(audioCtx.destination);bell.start(now+.18);bell.stop(now+1.15);}
+async function startMusic(){if(musicOn)return;try{const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass)return;if(!audioCtx)audioCtx=new AudioContextClass();if(audioCtx.state==='suspended')await audioCtx.resume();musicOn=true;playChord();musicTimer=setInterval(playChord,1900);}catch(e){/* Browser may require a user gesture before audio can play. */}}
+function showWish(){clearTimeout(messageTimer);message.classList.remove('show');void message.offsetWidth;message.textContent=wishes[wishIndex];wishIndex=(wishIndex+1)%wishes.length;message.classList.add('show');messageTimer=setTimeout(()=>message.classList.remove('show'),4000);}
+function makeBurst(x,y){const symbols=['💗','💕','💖','✨','❤️'];for(let i=0;i<16;i++){const p=document.createElement('span');p.className='spark';p.textContent=symbols[Math.floor(Math.random()*symbols.length)];p.style.left=x+'px';p.style.top=y+'px';p.style.setProperty('--x',(Math.random()-.5)*280+'px');p.style.setProperty('--y',(Math.random()-.5)*260+'px');scene.appendChild(p);setTimeout(()=>p.remove(),1300);}}
+heart.addEventListener('click',e=>{
+  // Lần chạm đầu tiên: hiện lời chúc ngay và tự chuyển câu mỗi 4 giây.
+  if(!wishesStarted){
+    wishesStarted=true;
+    showWish();
+    wishInterval=setInterval(showWish,4000);
+    const hint=document.querySelector('.hint');
+    if(hint) hint.textContent='Lời chúc dành cho Mai sẽ tự xuất hiện mỗi 4 giây 💌';
+  }
+  makeBurst(e.clientX,e.clientY);
+  heart.animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:450,easing:'ease-out'});
+  startMusic();
+});
+function createFallingHeart(){const item=document.createElement('span');item.className='falling-heart';item.textContent=['♥','♡','💗','💕'][Math.floor(Math.random()*4)];item.style.left=Math.random()*100+'vw';item.style.fontSize=(12+Math.random()*22)+'px';const duration=5+Math.random()*7;item.style.animationDuration=duration+'s';item.style.opacity=.35+Math.random()*.65;scene.appendChild(item);setTimeout(()=>item.remove(),duration*1000);}
+setInterval(createFallingHeart,260);
+// Tự thử phát nhạc khi mở trang. Một số trình duyệt chặn âm thanh tự động;
+// nếu bị chặn, lần chạm trái tim đầu tiên sẽ bật nhạc.
+window.addEventListener('load',()=>{startMusic();});
+</script>
+</body>
+</html>
