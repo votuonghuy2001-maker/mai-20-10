@@ -72,6 +72,10 @@ heart.addEventListener('click',e=>{
   makeBurst(e.clientX,e.clientY);
   heart.animate([{transform:'scale(1)'},{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:450,easing:'ease-out'});
   startMusic();
+  const bgMusic = document.getElementById('bgMusic');
+
+bgMusic.play().catch(error => {
+  console.log('Chưa thể phát nhạc:', error);
 });
 function createFallingHeart(){const item=document.createElement('span');item.className='falling-heart';item.textContent=['♥','♡','💗','💕'][Math.floor(Math.random()*4)];item.style.left=Math.random()*100+'vw';item.style.fontSize=(12+Math.random()*22)+'px';const duration=5+Math.random()*7;item.style.animationDuration=duration+'s';item.style.opacity=.35+Math.random()*.65;scene.appendChild(item);setTimeout(()=>item.remove(),duration*1000);}
 setInterval(createFallingHeart,260);
